@@ -1,6 +1,7 @@
 library(tidyverse)
 library(data.table)
 library(readxl)
+# library(missMDA)
 options(scipen = 999)
 
 # Sankeys FOG and Gait Impairment over conditions -----------------------
@@ -902,3 +903,486 @@ ggplot() +
 
 
 
+
+# ---------------------------
+# Summary demographics and compare each one Pre vs Post surgery ---------------
+demographicdata <- read_xlsx(path="demographicdata.xlsx", skip=0, trim_ws = TRUE)
+
+names(demographicdata)[1] <- "patient"
+
+data.frame(names(demographicdata))
+
+length(unique(demographicdata$patient))
+
+sum(is.na(demographicdata))
+
+head(demographicdata)
+
+demographicdata$R_Voltage <- as.numeric(demographicdata$R_Voltage)
+demographicdata$LEDDpreop <- as.numeric(demographicdata$LEDDpreop)
+demographicdata$L_Voltage <- as.numeric(demographicdata$L_Voltage)
+
+Imputed <- imputePCA(demographicdata[,-c(1)],ncp=2, scale = T)
+
+demographicdata <- demographicdata %>% select(patient) %>% bind_cols(Imputed$completeObs)
+
+sum(demographicdata<0)
+
+head(demographicdata)
+
+names(demographicdata)
+
+table(demographicdata$Sex) 
+mean(demographicdata$AgeDiseaseOnset) ; sd(demographicdata$AgeDiseaseOnset) ; quantile(demographicdata$AgeDiseaseOnset)
+mean(demographicdata$AgeSurgery) ; sd(demographicdata$AgeSurgery) ; quantile(demographicdata$AgeSurgery)
+mean(demographicdata$AgeEvaluation) ; sd(demographicdata$AgeEvaluation) ; quantile(demographicdata$AgeEvaluation)
+mean(demographicdata$DiseaseDurationSurgery) ; sd(demographicdata$DiseaseDurationSurgery) ; quantile(demographicdata$DiseaseDurationSurgery)
+mean(demographicdata$DiseaseDurationEvaluation) ; sd(demographicdata$DiseaseDurationEvaluation) ; quantile(demographicdata$DiseaseDurationEvaluation)
+mean(demographicdata$Time_after_surgery_m) ; sd(demographicdata$Time_after_surgery_m) ; quantile(demographicdata$Time_after_surgery_m)
+mean(demographicdata$LEDDpreop) ; sd(demographicdata$LEDDpreop) ; quantile(demographicdata$LEDDpreop)
+mean(demographicdata$`LEDD evaluation`) ; sd(demographicdata$`LEDD evaluation`) ; quantile(demographicdata$`LEDD evaluation`)
+table(demographicdata$R_mode) /18
+table(demographicdata$L_mode) /18
+mean(demographicdata$R_Voltage) ; sd(demographicdata$R_Voltage) ; quantile(demographicdata$R_Voltage)
+mean(demographicdata$L_Voltage) ; sd(demographicdata$L_Voltage) ; quantile(demographicdata$L_Voltage)
+mean(demographicdata$R_freq) ; sd(demographicdata$R_freq) ; quantile(demographicdata$R_freq)
+mean(demographicdata$L_Freq) ; sd(demographicdata$L_Freq) ; quantile(demographicdata$L_Freq)
+mean(demographicdata$R_PW) ; sd(demographicdata$R_PW) ; quantile(demographicdata$R_PW)
+mean(demographicdata$L_PW) ; sd(demographicdata$L_PW) ; quantile(demographicdata$L_PW)
+mean(demographicdata$UPDRS_I_OF_preOP) ; sd(demographicdata$UPDRS_I_OF_preOP) ; quantile(demographicdata$UPDRS_I_OF_preOP)
+mean(demographicdata$UPDRS_I_ON_preOP) ; sd(demographicdata$UPDRS_I_ON_preOP) ; quantile(demographicdata$UPDRS_I_ON_preOP)
+mean(demographicdata$UPDRS_II_OFF_preOP) ; sd(demographicdata$UPDRS_II_OFF_preOP) ; quantile(demographicdata$UPDRS_II_OFF_preOP)
+mean(demographicdata$UPDRS_II_ON_preOP) ; sd(demographicdata$UPDRS_II_ON_preOP) ; quantile(demographicdata$UPDRS_II_ON_preOP)
+mean(demographicdata$UPDRS_IV_preOP) ; sd(demographicdata$UPDRS_IV_preOP) ; quantile(demographicdata$UPDRS_IV_preOP)
+mean(demographicdata$UPDRS_IV) ; sd(demographicdata$UPDRS_IV) ; quantile(demographicdata$UPDRS_IV)
+mean(demographicdata$`Dose LCT_preOP`) ; sd(demographicdata$`Dose LCT_preOP`) ; quantile(demographicdata$`Dose LCT_preOP`)
+mean(demographicdata$`Dose LCT`) ; sd(demographicdata$`Dose LCT`) ; quantile(demographicdata$`Dose LCT`)
+mean(demographicdata$UPDRS_I_OFF) ; sd(demographicdata$UPDRS_I_OFF) ; quantile(demographicdata$UPDRS_I_OFF)
+mean(demographicdata$UPDRS_I_ON) ; sd(demographicdata$UPDRS_I_ON) ; quantile(demographicdata$UPDRS_I_ON)
+mean(demographicdata$UPDRS_II_OFF) ; sd(demographicdata$UPDRS_II_OFF) ; quantile(demographicdata$UPDRS_II_OFF)
+mean(demographicdata$UPDRS_II_ON) ; sd(demographicdata$UPDRS_II_ON) ; quantile(demographicdata$UPDRS_II_ON)
+mean(demographicdata$MMSEpreOP) ; sd(demographicdata$MMSEpreOP) ; quantile(demographicdata$MMSEpreOP)
+table(demographicdata$NEUROPSYDXPreop) ; sd(demographicdata$NEUROPSYDXPreop) ; quantile(demographicdata$NEUROPSYDXPreop)
+
+
+#LEDD
+
+wilcox.test(demographicdata$LEDDpreop, demographicdata$`LEDD evaluation`, paired = TRUE)
+
+# Wilcoxon signed rank exact test
+# 
+# data:  demographicdata$LEDDpreop and demographicdata$`LEDD evaluation`
+# V = 169, p-value = 0.00002289
+# alternative hypothesis: true location shift is not equal to 0
+
+
+df <- demographicdata %>% select(LEDDpreop, `LEDD evaluation`) %>% gather(Var, Score, LEDDpreop:`LEDD evaluation`) 
+
+mean_stats <- aggregate(Score ~ Var, data = df, function(x) mean(x))
+sd_stats <- aggregate(Score ~  Var, data = df, function(x) sd(x)/sqrt(18))
+summary_stats <- merge(mean_stats, sd_stats, by = "Var", suffixes = c("_mean", "_sd"))
+
+summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "LEDDpreop", "A- LEDD Pre-OP", "B- LEDD Post-OP")) %>% arrange(Var)
+df <- df %>% mutate(Var=ifelse(Var == "LEDDpreop", "A- LEDD Pre-OP", "B- LEDD Post-OP")) %>% arrange(Var)
+
+names(summary_stats)
+
+ggplot() +
+  geom_bar(data = summary_stats, aes(x = Var, y = Score_mean, fill=Var, colour=NULL ), 
+           stat = "identity", position = "dodge", show.legend = FALSE, alpha=0.3 , width = 0.5 ) +
+  geom_errorbar(data = summary_stats, aes(x = Var, colour=Var, ymin = Score_mean  - Score_sd, ymax = Score_mean  + Score_sd), 
+                position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
+  geom_jitter(data = df, 
+              aes(x = Var, 
+                  y = Score, color = Var),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+  labs(title = "LEDD (mg)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c("#A8234C", "#00639B")) +
+  scale_fill_manual(values=c("#A8234C", "#00639B")) +
+  xlab("\n Pre- vs Post-OP Eval") + ylab("LEDD (mg) \n [ x\u0305 \u00B1 \u03C3 ] \n")
+
+
+
+
+
+#UPDRS I ON
+wilcox.test(demographicdata$UPDRS_I_OF_preOP, demographicdata$UPDRS_I_OFF, paired = TRUE)
+
+# Wilcoxon signed rank test with continuity
+# correction
+# 
+# data:  demographicdata$UPDRS_I_OF_preOP and demographicdata$UPDRS_I_OFF
+# V = 76.5, p-value = 0.678
+# alternative hypothesis: true location shift is not equal to 0
+
+df <- demographicdata %>% select(UPDRS_I_OF_preOP, UPDRS_I_OFF) %>% gather(Var, Score, UPDRS_I_OF_preOP:UPDRS_I_OFF) 
+
+mean_stats <- aggregate(Score ~ Var, data = df, function(x) mean(x))
+sd_stats <- aggregate(Score ~  Var, data = df, function(x) sd(x)/sqrt(18))
+summary_stats <- merge(mean_stats, sd_stats, by = "Var", suffixes = c("_mean", "_sd"))
+
+summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "UPDRS_I_OF_preOP", "A- UPDRS I OFF Pre-OP", "B- UPDRS I OFF Post-OP")) %>% arrange(Var)
+df <- df %>%  mutate(Var=ifelse(Var == "UPDRS_I_OF_preOP", "A- UPDRS I OFF Pre-OP", "B- UPDRS I OFF Post-OP")) %>% arrange(Var)
+
+names(summary_stats)
+
+ggplot() +
+  geom_bar(data = summary_stats, aes(x = Var, y = Score_mean, fill=Var, colour=NULL ), 
+           stat = "identity", position = "dodge", show.legend = FALSE, alpha=0.3 , width = 0.5 ) +
+  geom_errorbar(data = summary_stats, aes(x = Var, colour=Var, ymin = Score_mean  - Score_sd, ymax = Score_mean  + Score_sd), 
+                position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
+  geom_jitter(data = df, 
+              aes(x = Var, 
+                  y = Score, color = Var),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+  labs(title = "UPDRS I OFF") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c("#A8234C", "#00639B")) +
+  scale_fill_manual(values=c("#A8234C", "#00639B")) +
+  xlab("\n Pre- vs Post-OP Eval") + ylab("UPDRS I OFF \n [ x\u0305 \u00B1 \u03C3 ] \n")
+
+
+
+
+
+#UPDRS I ON
+wilcox.test(demographicdata$UPDRS_I_ON, demographicdata$UPDRS_I_ON_preOP, paired = TRUE)
+
+# Wilcoxon signed rank test with continuity correction
+# 
+# data:  demographicdata$UPDRS_I_ON and demographicdata$UPDRS_I_ON_preOP
+# V = 114, p-value = 0.07897
+# alternative hypothesis: true location shift is not equal to 0
+
+df <- demographicdata %>% select(UPDRS_I_ON, UPDRS_I_ON_preOP) %>% gather(Var, Score, UPDRS_I_ON:UPDRS_I_ON_preOP) 
+
+mean_stats <- aggregate(Score ~ Var, data = df, function(x) mean(x))
+sd_stats <- aggregate(Score ~  Var, data = df, function(x) sd(x)/sqrt(18))
+summary_stats <- merge(mean_stats, sd_stats, by = "Var", suffixes = c("_mean", "_sd"))
+
+summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "UPDRS_I_ON_preOP", "A- UPDRS I ON Pre-OP", "B- UPDRS I ON Post-OP")) %>% arrange(Var)
+df <- df %>%  mutate(Var=ifelse(Var == "UPDRS_I_ON_preOP", "A- UPDRS I ON Pre-OP", "B- UPDRS I ON Post-OP")) %>% arrange(Var)
+
+names(summary_stats)
+
+ggplot() +
+  geom_bar(data = summary_stats, aes(x = Var, y = Score_mean, fill=Var, colour=NULL ), 
+           stat = "identity", position = "dodge", show.legend = FALSE, alpha=0.3 , width = 0.5 ) +
+  geom_errorbar(data = summary_stats, aes(x = Var, colour=Var, ymin = Score_mean  - Score_sd, ymax = Score_mean  + Score_sd), 
+                position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
+  geom_jitter(data = df, 
+              aes(x = Var, 
+                  y = Score, color = Var),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+  labs(title = "UPDRS I ON") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c("#A8234C", "#00639B")) +
+  scale_fill_manual(values=c("#A8234C", "#00639B")) +
+  xlab("\n Pre- vs Post-OP Eval") + ylab("UPDRS I ON \n [ x\u0305 \u00B1 \u03C3 ] \n")
+
+
+
+names(demographicdata)
+
+
+
+#UPDRS II OFF
+wilcox.test(demographicdata$UPDRS_II_OFF_preOP, demographicdata$UPDRS_II_OFF, paired = TRUE)
+
+# Wilcoxon signed rank test with continuity correction
+# 
+# data:  demographicdata$UPDRS_II_OFF_preOP and demographicdata$UPDRS_II_OFF
+# V = 111.5, p-value = 0.102
+# alternative hypothesis: true location shift is not equal to 0
+
+df <- demographicdata %>% select(UPDRS_II_OFF_preOP, UPDRS_II_OFF) %>% gather(Var, Score, UPDRS_II_OFF_preOP:UPDRS_II_OFF) 
+
+mean_stats <- aggregate(Score ~ Var, data = df, function(x) mean(x))
+sd_stats <- aggregate(Score ~  Var, data = df, function(x) sd(x)/sqrt(18))
+summary_stats <- merge(mean_stats, sd_stats, by = "Var", suffixes = c("_mean", "_sd"))
+
+summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "UPDRS_II_OFF_preOP", "A- UPDRS II OFF Pre-OP", "B- UPDRS II OFF Post-OP")) %>% arrange(Var)
+df <- df %>%  mutate(Var=ifelse(Var == "UPDRS_II_OFF_preOP", "A- UPDRS II OFF Pre-OP", "B- UPDRS II OFF Post-OP")) %>% arrange(Var)
+
+names(summary_stats)
+
+ggplot() +
+  geom_bar(data = summary_stats, aes(x = Var, y = Score_mean, fill=Var, colour=NULL ), 
+           stat = "identity", position = "dodge", show.legend = FALSE, alpha=0.3 , width = 0.5 ) +
+  geom_errorbar(data = summary_stats, aes(x = Var, colour=Var, ymin = Score_mean  - Score_sd, ymax = Score_mean  + Score_sd), 
+                position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
+  geom_jitter(data = df, 
+              aes(x = Var, 
+                  y = Score, color = Var),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+  labs(title = "UPDRS II OFF") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c("#A8234C", "#00639B")) +
+  scale_fill_manual(values=c("#A8234C", "#00639B")) +
+  xlab("\n Pre- vs Post-OP Eval") + ylab("UPDRS II OFF \n [ x\u0305 \u00B1 \u03C3 ] \n")
+
+
+
+#UPDRS II ON
+wilcox.test(demographicdata$UPDRS_II_ON, demographicdata$UPDRS_II_ON_preOP, paired = TRUE)
+
+# Wilcoxon signed rank test with
+# continuity correction
+# 
+# data:  demographicdata$UPDRS_II_ON and demographicdata$UPDRS_II_ON_preOP
+# V = 147, p-value = 0.007813
+# alternative hypothesis: true location shift is not equal to 0
+
+df <- demographicdata %>% select(UPDRS_II_ON_preOP, UPDRS_II_ON) %>% gather(Var, Score, UPDRS_II_ON_preOP:UPDRS_II_ON) 
+
+mean_stats <- aggregate(Score ~ Var, data = df, function(x) mean(x))
+sd_stats <- aggregate(Score ~  Var, data = df, function(x) sd(x)/sqrt(18))
+summary_stats <- merge(mean_stats, sd_stats, by = "Var", suffixes = c("_mean", "_sd"))
+
+summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "UPDRS_II_ON_preOP", "A- UPDRS II ON Pre-OP", "B- UPDRS II ON Post-OP")) %>% arrange(Var)
+df <- df %>%  mutate(Var=ifelse(Var == "UPDRS_II_ON_preOP", "A- UPDRS II ON Pre-OP", "B- UPDRS II ON Post-OP")) %>% arrange(Var)
+
+names(summary_stats)
+
+ggplot() +
+  geom_bar(data = summary_stats, aes(x = Var, y = Score_mean, fill=Var, colour=NULL ), 
+           stat = "identity", position = "dodge", show.legend = FALSE, alpha=0.3 , width = 0.5 ) +
+  geom_errorbar(data = summary_stats, aes(x = Var, colour=Var, ymin = Score_mean  - Score_sd, ymax = Score_mean  + Score_sd), 
+                position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
+  geom_jitter(data = df, 
+              aes(x = Var, 
+                  y = Score, color = Var),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+  labs(title = "UPDRS II ON") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c("#A8234C", "#00639B")) +
+  scale_fill_manual(values=c("#A8234C", "#00639B")) +
+  xlab("\n Pre- vs Post-OP Eval") + ylab("UPDRS II ON \n [ x\u0305 \u00B1 \u03C3 ] \n")
+
+
+
+#UPDRS IV 
+wilcox.test(demographicdata$UPDRS_IV_preOP, demographicdata$UPDRS_IV, paired = TRUE)
+
+# Wilcoxon signed rank test with continuity correction
+# 
+# data:  demographicdata$UPDRS_IV_preOP and demographicdata$UPDRS_IV
+# V = 162.5, p-value = 0.0008537
+# alternative hypothesis: true location shift is not equal to 0
+
+df <- demographicdata %>% select(UPDRS_IV_preOP, UPDRS_IV) %>% gather(Var, Score, UPDRS_IV_preOP:UPDRS_IV) 
+
+mean_stats <- aggregate(Score ~ Var, data = df, function(x) mean(x))
+sd_stats <- aggregate(Score ~  Var, data = df, function(x) sd(x)/sqrt(18))
+summary_stats <- merge(mean_stats, sd_stats, by = "Var", suffixes = c("_mean", "_sd"))
+
+summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "UPDRS_IV_preOP", "A- UPDRS IV Pre-OP", "B- UPDRS IV Post-OP")) %>% arrange(Var)
+df <- df %>%  mutate(Var=ifelse(Var == "UPDRS_IV_preOP", "A- UPDRS IV Pre-OP", "B- UPDRS IV Post-OP")) %>% arrange(Var)
+
+names(summary_stats)
+
+ggplot() +
+  geom_bar(data = summary_stats, aes(x = Var, y = Score_mean, fill=Var, colour=NULL ), 
+           stat = "identity", position = "dodge", show.legend = FALSE, alpha=0.3 , width = 0.5 ) +
+  geom_errorbar(data = summary_stats, aes(x = Var, colour=Var, ymin = Score_mean  - Score_sd, ymax = Score_mean  + Score_sd), 
+                position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
+  geom_jitter(data = df, 
+              aes(x = Var, 
+                  y = Score, color = Var),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+  labs(title = "UPDRS IV") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c("#A8234C", "#00639B")) +
+  scale_fill_manual(values=c("#A8234C", "#00639B")) +
+  xlab("\n Pre- vs Post-OP Eval") + ylab("UPDRS IV \n [ x\u0305 \u00B1 \u03C3 ] \n")
+
+
+
+names(demographicdata)
+
+
+#LCT change 
+
+clinical_df <- read_xlsx(path="clinical_table copy2years.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
+
+names(clinical_df)[1] <- "patient"
+
+data.frame(names(clinical_df))
+
+
+length(unique(clinical_df$patient)) # 18
+
+unique(clinical_df$condition)
+
+LCT_change <- clinical_df %>% select(patient, `UPDRS III`, condition) %>% 
+  mutate(`UPDRS III`=as.numeric(`UPDRS III`)) %>%
+  filter(condition=="OFFpreOP"|condition=="ONpreOP") %>%
+  spread(key=condition, value=`UPDRS III`) %>%
+  mutate(ChangePreOP= (OFFpreOP-ONpreOP)/OFFpreOP) %>%
+  select(patient, ChangePreOP) %>%
+  left_join(
+    clinical_df %>% select(patient, `UPDRS III`, condition) %>% 
+      mutate(`UPDRS III`=as.numeric(`UPDRS III`)) %>%
+      filter(condition=="MedOFFStimOFF"|condition=="MedOnStimOFF") %>%
+      spread(key=condition, value=`UPDRS III`) %>%
+      mutate(ChangePostOP= (MedOFFStimOFF-MedOnStimOFF)/MedOFFStimOFF) %>%
+      select(patient, ChangePostOP)
+  ) %>% select(-patient)
+
+
+
+
+mean(LCT_change$ChangePreOP) # 0.5405349
+sd(LCT_change$ChangePreOP)  # 0.1216855
+quantile(LCT_change$ChangePreOP)
+# 0%       25%       50%       75%      100% 
+# 0.3018868 0.4952532 0.5394042 0.6091074 0.7377049
+
+mean(LCT_change$ChangePostOP) # 0.2773776
+sd(LCT_change$ChangePostOP)  # 0.1367003
+quantile(LCT_change$ChangePostOP)
+# 0%        25%        50%        75%       100% 
+# 0.01851852 0.18241571 0.26846154 0.40909091 0.47619048 
+
+wilcox.test(LCT_change$ChangePreOP, LCT_change$ChangePostOP, paired = TRUE)
+
+
+# Wilcoxon signed rank exact test
+# 
+# data:  LCT_change$ChangePreOP and LCT_change$ChangePostOP
+# V = 171, p-value = 0.000007629
+# alternative hypothesis: true location shift is not equal to 0
+
+df <- LCT_change %>% select(ChangePreOP , ChangePostOP) %>% gather(Var, Score, ChangePreOP:ChangePostOP) 
+
+mean_stats <- aggregate(Score ~ Var, data = df, function(x) mean(x))
+sd_stats <- aggregate(Score ~  Var, data = df, function(x) sd(x)/sqrt(18))
+summary_stats <- merge(mean_stats, sd_stats, by = "Var", suffixes = c("_mean", "_sd"))
+
+summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "ChangePreOP", "A- LCT Prop Drop Pre-OP", "B- LCT Prop Drop Post-OP")) %>% arrange(Var)
+df <- df %>%  mutate(Var=ifelse(Var == "ChangePreOP", "A- LCT Prop Drop Pre-OP", "B- LCT Prop Drop Post-OP")) %>% arrange(Var)
+
+unique(df$Var)
+
+names(summary_stats)
+
+ggplot() +
+  geom_bar(data = summary_stats, aes(x = Var, y = Score_mean, fill=Var, colour=NULL ), 
+           stat = "identity", position = "dodge", show.legend = FALSE, alpha=0.3 , width = 0.5 ) +
+  geom_errorbar(data = summary_stats, aes(x = Var, colour=Var, ymin = Score_mean  - Score_sd, ymax = Score_mean  + Score_sd), 
+                position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
+  geom_jitter(data = df, 
+              aes(x = Var, 
+                  y = Score, color = Var),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+  labs(title = "LCT Prop Drop") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c("#A8234C", "#00639B")) +
+  scale_fill_manual(values=c("#A8234C", "#00639B")) +
+  xlab("\n Pre- vs Post-OP Eval") + ylab("LCT Prop Drop \n [ x\u0305 \u00B1 \u03C3 ] \n")
+
+
+
+
+
+
+#Prop Resp Tp Med or Stim Post OP only
+
+clinical_df <- read_xlsx(path="clinical_table copy2years.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
+
+names(clinical_df)[1] <- "patient"
+
+data.frame(names(clinical_df))
+
+length(unique(clinical_df$patient)) # 18
+
+unique(clinical_df$condition)
+
+LCT_change <- clinical_df %>% select(patient, `UPDRS III`, condition) %>% 
+  mutate(`UPDRS III`=as.numeric(`UPDRS III`)) %>%
+  filter(condition=="MedOFFStimOFF"|condition=="MedOnStimOFF") %>%
+  spread(key=condition, value=`UPDRS III`) %>%
+  mutate(ChangeOFFtoMed= (MedOFFStimOFF-MedOnStimOFF)/MedOFFStimOFF) %>%
+  select(patient, ChangeOFFtoMed) %>%
+  left_join(
+    clinical_df %>% select(patient, `UPDRS III`, condition) %>% 
+      mutate(`UPDRS III`=as.numeric(`UPDRS III`)) %>%
+      filter(condition=="MedOFFStimOFF"|condition=="MedOFFStimON") %>%
+      spread(key=condition, value=`UPDRS III`) %>%
+      mutate(ChangeOFFtoStim= (MedOFFStimOFF-MedOFFStimON)/MedOFFStimOFF) %>%
+      select(patient, ChangeOFFtoStim)
+  ) %>% 
+  left_join(
+    clinical_df %>% select(patient, `UPDRS III`, condition) %>% 
+      mutate(`UPDRS III`=as.numeric(`UPDRS III`)) %>%
+      filter(condition=="MedOFFStimOFF"|condition=="MedOnStimON") %>%
+      spread(key=condition, value=`UPDRS III`) %>%
+      mutate(ChangeOFFtoBoth= (MedOFFStimOFF-MedOnStimON)/MedOFFStimOFF) %>%
+      select(patient, ChangeOFFtoBoth)
+  ) %>% select(-patient)
+
+
+
+
+mean(LCT_change$ChangeOFFtoMed) # 0.2773776
+sd(LCT_change$ChangeOFFtoMed)  # 0.1367003
+quantile(LCT_change$ChangeOFFtoMed)
+# 0%        25%        50%        75%       100% 
+# 0.01851852 0.18241571 0.26846154 0.40909091 0.47619048 
+
+mean(LCT_change$ChangeOFFtoStim) # 0.2526892
+sd(LCT_change$ChangeOFFtoStim)  # 0.08157657
+quantile(LCT_change$ChangeOFFtoStim)
+#       0%       25%       50%       75%      100% 
+# 0.1538462 0.1917702 0.2409888 0.2735507 0.4385965 
+
+mean(LCT_change$ChangeOFFtoBoth) # 0.444241
+sd(LCT_change$ChangeOFFtoBoth)  # 0.126574
+quantile(LCT_change$ChangeOFFtoBoth)
+# 0%       25%       50%       75%      100% 
+# 0.2786885 0.3330268 0.4242424 0.5232919 0.6315789 
+
+
+wilcox.test(LCT_change$ChangeOFFtoMed, LCT_change$ChangeOFFtoStim, paired = TRUE) # ns
+wilcox.test(LCT_change$ChangeOFFtoMed, LCT_change$ChangeOFFtoBoth, paired = TRUE) #***
+wilcox.test(LCT_change$ChangeOFFtoStim, LCT_change$ChangeOFFtoBoth, paired = TRUE) #***
+
+
+
+
+
+
+df <- LCT_change %>% select(ChangeOFFtoMed , ChangeOFFtoStim, ChangeOFFtoBoth) %>% gather(Var, Score, ChangeOFFtoMed:ChangeOFFtoBoth) 
+
+mean_stats <- aggregate(Score ~ Var, data = df, function(x) mean(x))
+sd_stats <- aggregate(Score ~  Var, data = df, function(x) sd(x)/sqrt(18))
+summary_stats <- merge(mean_stats, sd_stats, by = "Var", suffixes = c("_mean", "_sd"))
+
+summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "ChangeOFFtoMed", "A- LCT Prop Drop OFF to Med", ifelse(Var =="ChangeOFFtoStim", "B- LCT Prop Drop OFF to Stim",  "C- LCT Prop Drop OFF to Med + Stim"))) %>% arrange(Var)
+df <- df %>%  mutate(Var=ifelse(Var == "ChangeOFFtoMed", "A- LCT Prop Drop OFF to Med", ifelse(Var =="ChangeOFFtoStim", "B- LCT Prop Drop OFF to Stim",  "C- LCT Prop Drop OFF to Med + Stim"))) %>% arrange(Var)
+
+unique(df$Var)
+
+names(summary_stats)
+
+ggplot() +
+  geom_bar(data = summary_stats, aes(x = Var, y = Score_mean, fill=Var, colour=NULL ), 
+           stat = "identity", position = "dodge", show.legend = FALSE, alpha=0.3 , width = 0.5 ) +
+  geom_errorbar(data = summary_stats, aes(x = Var, colour=Var, ymin = Score_mean  - Score_sd, ymax = Score_mean  + Score_sd), 
+                position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
+  geom_jitter(data = df, 
+              aes(x = Var, 
+                  y = Score, color = Var),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+  labs(title = "LCT Prop Drop") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c("#00639B" , "#00438F", "#A8234C")) +
+  scale_fill_manual(values=c("#00639B" , "#00438F", "#A8234C")) +
+  xlab("\n Med \u00B1 Stim") + ylab("LCT Prop Drop \n [ x\u0305 \u00B1 \u03C3 ] \n")
+
+
+
+
+
+# --------------------------------
