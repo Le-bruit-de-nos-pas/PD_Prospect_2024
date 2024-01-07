@@ -1386,3 +1386,217 @@ ggplot() +
 
 
 # --------------------------------
+
+# Kinematics summary and fold change OFF to ONs Post-OP -----------------
+
+
+# Summary post
+
+kine_postop_only <- read_xlsx(path="kine_postop_only.xlsx", skip=0, trim_ws = TRUE)
+names(kine_postop_only)[1] <- "patient"
+names(kine_postop_only)
+
+length(unique(kine_postop_only$patient))
+
+kine_postop_only
+sum(kine_postop_only<0, na.rm=T)
+
+Imputed <- missMDA::imputePCA(kine_postop_only[,-c(1,27)],ncp=2, scale = T)
+
+kine_postop_only <- kine_postop_only %>% select(patient, condition) %>% bind_cols(Imputed$completeObs)
+
+sum(kine_postop_only<0)
+
+names(kine_postop_only)
+
+kine_postop_only$`Step Time_Assym` <- abs(kine_postop_only$`Step Time_Assym`)
+kine_postop_only$Step_Lenght_Assym <- abs(kine_postop_only$Step_Lenght_Assym)
+kine_postop_only$`Stance Time_Assym` <- abs(kine_postop_only$`Stance Time_Assym`)
+kine_postop_only$`Swing Time_Assym` <- abs(kine_postop_only$`Swing Time_Assym`)
+kine_postop_only$`Doubble support_Assym` <- abs(kine_postop_only$`Doubble support_Assym`)
+kine_postop_only$`Single Support_Assym` <- abs(kine_postop_only$`Single Support_Assym`)
+
+names(kine_postop_only) <- str_replace_all(names(kine_postop_only), " ", "_")
+names(kine_postop_only) <- str_replace_all(names(kine_postop_only), "/", "")
+
+unique(kine_postop_only$condition)
+
+fwrite(kine_postop_only, "kine_postop_only_Imp.txt")
+
+data.frame(names(kine_postop_only))
+
+kine_postop_only %>% 
+  group_by(condition) %>%
+  summarise(across(everything(), mean)) %>%
+  transpose()
+
+kine_postop_only %>% 
+  group_by(condition) %>%
+  summarise(across(everything(), sd)) %>%
+  transpose()
+
+kine_postop_only %>% 
+  group_by(condition) %>%
+  summarise(across(everything(), median)) %>%
+  transpose()
+
+kine_postop_only %>%
+  group_by(condition) %>%
+  summarise(across(everything(), ~quantile(., 0.25))) %>%
+  tidyr::unnest(cols = everything()) %>%
+  transpose()
+
+kine_postop_only %>%
+  group_by(condition) %>%
+  summarise(across(everything(), ~quantile(., 0.75))) %>%
+  tidyr::unnest(cols = everything()) %>%
+  transpose()
+
+
+
+# Summary pre
+
+kine_pre_post <- read_xlsx(path="kine_pre_post.xlsx", skip=0, trim_ws = TRUE)
+names(kine_pre_post)[1] <- "patient"
+names(kine_pre_post)
+
+kine_pre_post
+sum(kine_pre_post<0, na.rm=T)
+
+Imputed <- missMDA::imputePCA(kine_pre_post[,-c(1,27)],ncp=2, scale = T)
+
+kine_pre_post <- kine_pre_post %>% select(patient, condition) %>% bind_cols(Imputed$completeObs)
+
+sum(kine_pre_post<0)
+
+names(kine_pre_post)
+
+kine_pre_post$`Step Time_Assym` <- abs(kine_pre_post$`Step Time_Assym`)
+kine_pre_post$Step_Lenght_Assym <- abs(kine_pre_post$Step_Lenght_Assym)
+kine_pre_post$`Stance Time_Assym` <- abs(kine_pre_post$`Stance Time_Assym`)
+kine_pre_post$`Swing Time_Assym` <- abs(kine_pre_post$`Swing Time_Assym`)
+kine_pre_post$`Doubble support_Assym` <- abs(kine_pre_post$`Doubble support_Assym`)
+kine_pre_post$`Single Support_Assym` <- abs(kine_pre_post$`Single Support_Assym`)
+
+names(kine_pre_post) <- str_replace_all(names(kine_pre_post), " ", "_")
+names(kine_pre_post) <- str_replace_all(names(kine_pre_post), "/", "")
+
+unique(kine_pre_post$condition)
+
+fwrite(kine_pre_post, "kine_pre_post_Imp.txt")
+
+kine_pre_post <- kine_pre_post %>% select(-patient)
+
+
+kine_pre_post %>% filter(condition=="Pre_op_OFF"|condition=="Pre_op_ON") %>%
+  group_by(condition) %>%
+  summarise(across(everything(), mean)) %>%
+  transpose()
+
+kine_pre_post %>% filter(condition=="Pre_op_OFF"|condition=="Pre_op_ON") %>%
+  group_by(condition) %>%
+  summarise(across(everything(), sd)) %>%
+  transpose()
+
+kine_pre_post %>% filter(condition=="Pre_op_OFF"|condition=="Pre_op_ON") %>%
+  group_by(condition) %>%
+  summarise(across(everything(), median)) %>%
+  transpose()
+
+kine_pre_post %>% filter(condition=="Pre_op_OFF"|condition=="Pre_op_ON") %>%
+  group_by(condition) %>%
+  summarise(across(everything(), ~quantile(., 0.25))) %>%
+  tidyr::unnest(cols = everything()) %>%
+  transpose()
+
+kine_pre_post %>% filter(condition=="Pre_op_OFF"|condition=="Pre_op_ON") %>%
+  group_by(condition) %>%
+  summarise(across(everything(), ~quantile(., 0.75))) %>%
+  tidyr::unnest(cols = everything()) %>%
+  transpose()
+
+
+
+
+
+ON_OFF <- kine_postop_only %>% filter(condition=="MedON/StimOFF") %>% select(-condition)
+OFF_ON <- kine_postop_only %>% filter(condition=="MedOFFStimON") %>% select(-condition)
+OFF_OFF <- kine_postop_only %>% filter(condition=="MedOFFStimOFF") %>% select(-condition)
+
+DeltaON_OFF <- ON_OFF - OFF_OFF
+DeltaOFF_ON <- OFF_ON - OFF_OFF
+
+DeltaON_OFF$Single_Support_Assym
+DeltaOFF_ON$Single_Support_Assym
+
+mean(DeltaOFF_ON$`Speed_(ms)`) ; sd(DeltaOFF_ON$`Speed_(ms)`)
+mean(DeltaON_OFF$`Speed_(ms)`) ; sd(DeltaON_OFF$`Speed_(ms)`)
+
+mean(DeltaOFF_ON$`Cadence_(stepsmin)`) ; sd(DeltaOFF_ON$`Cadence_(stepsmin)`)
+mean(DeltaON_OFF$`Cadence_(stepsmin)`) ; sd(DeltaON_OFF$`Cadence_(stepsmin)`)
+
+mean(DeltaOFF_ON$`Step_Lenght_Var`) ; sd(DeltaOFF_ON$`Step_Lenght_Var`)
+mean(DeltaON_OFF$`Step_Lenght_Var`) ; sd(DeltaON_OFF$`Step_Lenght_Var`)
+
+wilcox.test(DeltaOFF_ON$`Speed_(ms)`, DeltaON_OFF$`Speed_(ms)`, paired=T)
+wilcox.test(DeltaOFF_ON$hr_vert, DeltaON_OFF$hr_vert, paired=T)
+wilcox.test(DeltaOFF_ON$`Cadence_(stepsmin)`, DeltaON_OFF$`Cadence_(stepsmin)`, paired=T)
+
+
+
+DeltaON_OFF %>% 
+  summarise(across(everything(), mean)) %>%
+  transpose() %>% rename("mean"="V1") %>%
+  bind_cols(
+    DeltaON_OFF %>% 
+      summarise(across(everything(), sd)) %>%
+      transpose() %>% rename("sd"="V1")
+  ) %>% mutate(stand_diffMed=mean/sd) %>% select(stand_diffMed) %>%
+  bind_cols(
+    DeltaOFF_ON %>% 
+      summarise(across(everything(), mean)) %>%
+      transpose() %>% rename("mean"="V1") %>%
+      bind_cols(
+        DeltaOFF_ON %>% 
+          summarise(across(everything(), sd)) %>%
+          transpose() %>% rename("sd"="V1")
+      ) %>% mutate(stand_diffStim=mean/sd) %>% select(stand_diffStim) 
+  ) %>%
+  bind_cols(data.frame(names(DeltaON_OFF))) %>%
+  gather(Cond, value, stand_diffMed:stand_diffStim) %>%
+  ggplot(aes(factor(names.DeltaON_OFF., levels=unique(names.DeltaON_OFF.)), value, colour=Cond, fill=Cond)) +
+  geom_col(position="dodge", width=0.6, alpha=0.75) +
+  scale_fill_manual(values=c("#A8234C", "#001932")) +
+  scale_colour_manual(values=c("#A8234C", "#001932")) +
+  coord_flip() +
+  theme_minimal() +
+  ylab("\n Standardized Mean Change \n OFF/OFF to  Med-ON || Stim-ON") + xlab("")
+
+
+
+
+
+common_column_names <- intersect(names(DeltaON_OFF), names(DeltaOFF_ON))
+
+
+
+
+
+for (col_name in common_column_names) {
+  
+  wilcox_result <- wilcox.test(DeltaON_OFF[[col_name]], 
+                               DeltaOFF_ON[[col_name]], paired = TRUE)
+  
+  cat("Wilcoxon Test for", col_name, ":\n")
+  
+  print(wilcox_result)
+  
+  cat("\n")
+}
+
+
+
+
+
+
+# --------------------------------------
