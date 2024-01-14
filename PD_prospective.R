@@ -729,12 +729,15 @@ unique(clinical_df$condition)
 
 clinical_df <- clinical_df %>% filter(condition=="MedOFFStimOFF"|condition=="MedOnStimOFF"|condition=="MedOFFStimON")
 
+
+clinical_df %>% drop_na() %>% group_by(condition) %>% summarise(mean=mean(SWSFOG_))
+
 clinical_df %>%
   ggplot(aes(x = condition, y = SWSFOG_, color = factor(condition), group = patient)) +
   geom_jitter(position = position_dodge(width = 0.2), size=2, alpha=0.6, show.legend = F) +
   geom_line(position = position_dodge(width = 0.2), show.legend = F) +
   theme_minimal() +
-  ylim(0,10) +
+ # ylim(0,10) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
 scale_colour_manual(values=c( "#0087CA", "#001932", "#A8234C")) +
   scale_fill_manual(values=c("#0087CA", "#001932", "#A8234C")) +
@@ -837,7 +840,7 @@ ggplot() +
                   y = SWSFOG_, color = condition),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
   labs(title = "# FOG Events ") +
   theme_minimal() +
-  ylim(0,10) +
+  #ylim(0,10) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_colour_manual(values=c( "#A8234C",  "#00639B", "#001932")) +
   scale_fill_manual(values=c( "#A8234C",  "#00639B",  "#001932")) +
@@ -1260,8 +1263,8 @@ mean_stats <- aggregate(Score ~ Var, data = df, function(x) mean(x))
 sd_stats <- aggregate(Score ~  Var, data = df, function(x) sd(x)/sqrt(18))
 summary_stats <- merge(mean_stats, sd_stats, by = "Var", suffixes = c("_mean", "_sd"))
 
-summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "ChangePreOP", "A- LCT Prop Drop Pre-OP", "B- LCT Prop Drop Post-OP")) %>% arrange(Var)
-df <- df %>%  mutate(Var=ifelse(Var == "ChangePreOP", "A- LCT Prop Drop Pre-OP", "B- LCT Prop Drop Post-OP")) %>% arrange(Var)
+summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "ChangePreOP", "A- LCT % Resp Pre-OP", "B- LCT % Resp Post-OP")) %>% arrange(Var)
+df <- df %>%  mutate(Var=ifelse(Var == "ChangePreOP", "A- LCT % Resp Pre-OP", "B- LCT % Resp Post-OP")) %>% arrange(Var)
 
 unique(df$Var)
 
@@ -1275,12 +1278,12 @@ ggplot() +
   geom_jitter(data = df, 
               aes(x = Var, 
                   y = Score, color = Var),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
-  labs(title = "LCT Prop Drop") +
+  labs(title = "LCT % Resp Drop") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_colour_manual(values=c("#A8234C", "#00639B")) +
   scale_fill_manual(values=c("#A8234C", "#00639B")) +
-  xlab("\n Pre- vs Post-OP Eval") + ylab("LCT Prop Drop \n [ x\u0305 \u00B1 \u03C3 ] \n")
+  xlab("\n Pre- vs Post-OP Eval") + ylab("LCT % Response \n [ x\u0305 \u00B1 \u03C3 ] \n")
 
 
 
@@ -1359,8 +1362,8 @@ mean_stats <- aggregate(Score ~ Var, data = df, function(x) mean(x))
 sd_stats <- aggregate(Score ~  Var, data = df, function(x) sd(x)/sqrt(18))
 summary_stats <- merge(mean_stats, sd_stats, by = "Var", suffixes = c("_mean", "_sd"))
 
-summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "ChangeOFFtoMed", "A- LCT Prop Drop OFF to Med", ifelse(Var =="ChangeOFFtoStim", "B- LCT Prop Drop OFF to Stim",  "C- LCT Prop Drop OFF to Med + Stim"))) %>% arrange(Var)
-df <- df %>%  mutate(Var=ifelse(Var == "ChangeOFFtoMed", "A- LCT Prop Drop OFF to Med", ifelse(Var =="ChangeOFFtoStim", "B- LCT Prop Drop OFF to Stim",  "C- LCT Prop Drop OFF to Med + Stim"))) %>% arrange(Var)
+summary_stats <- summary_stats %>% mutate(Var=ifelse(Var == "ChangeOFFtoMed", "A- % Resp MDS-UPDRS LD", ifelse(Var =="ChangeOFFtoStim", "B- % Resp MDS-UPDRS STIM",  "C- % Resp MDS-UPDRS LD + STIM"))) %>% arrange(Var)
+df <- df %>%  mutate(Var=ifelse(Var == "ChangeOFFtoMed", "A- % Resp MDS-UPDRS LD", ifelse(Var =="ChangeOFFtoStim", "B- % Resp MDS-UPDRS STIM",  "C- % Resp MDS-UPDRS LD + STIM"))) %>% arrange(Var)
 
 unique(df$Var)
 
@@ -1374,12 +1377,12 @@ ggplot() +
   geom_jitter(data = df, 
               aes(x = Var, 
                   y = Score, color = Var),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
-  labs(title = "LCT Prop Drop") +
+  labs(title = "\u2206 MDS-UPDRS Post-OP") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_colour_manual(values=c("#00639B" , "#00438F", "#A8234C")) +
   scale_fill_manual(values=c("#00639B" , "#00438F", "#A8234C")) +
-  xlab("\n Med \u00B1 Stim") + ylab("LCT Prop Drop \n [ x\u0305 \u00B1 \u03C3 ] \n")
+  xlab("\n Med \u00B1 Stim") + ylab("LCT % Resp \n [ x\u0305 \u00B1 \u03C3 ] \n")
 
 
 
@@ -1422,7 +1425,11 @@ unique(kine_postop_only$condition)
 
 fwrite(kine_postop_only, "kine_postop_only_Imp.txt")
 
+kine_postop_only <- fread("kine_postop_only_Imp.txt")
+
 data.frame(names(kine_postop_only))
+
+kine_postop_only <- kine_postop_only %>% select(-patient)
 
 kine_postop_only %>% 
   group_by(condition) %>%
@@ -1483,6 +1490,7 @@ names(kine_pre_post) <- str_replace_all(names(kine_pre_post), "/", "")
 unique(kine_pre_post$condition)
 
 fwrite(kine_pre_post, "kine_pre_post_Imp.txt")
+kine_pre_post <- fread( "kine_pre_post_Imp.txt")
 
 kine_pre_post <- kine_pre_post %>% select(-patient)
 
@@ -2260,6 +2268,260 @@ DeltaPre_ON %>%
 
 
 
+
+common_column_names <- intersect(names(DeltaPre_ON), names(DeltaPost_ON))
+
+
+
+for (col_name in common_column_names) {
+  
+  wilcox_result <- wilcox.test(DeltaPre_ON[[col_name]], 
+                               DeltaPost_ON[[col_name]], paired = TRUE)
+  
+  cat("Wilcoxon Test for", col_name, ":\n")
+  
+  print(wilcox_result)
+  
+  cat("\n")
+}
+
+
+# Wilcoxon Test for Speed_(ms) :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 63, p-value = 0.004883
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Cadence_(stepsmin) :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 31, p-value = 0.8984
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Step_Time_(s) :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 26, p-value = 0.5771
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Step_Lenght_(s) :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 66, p-value = 0.0009766
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Stride_Time_(s) :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 23, p-value = 0.4131
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Stride_Length_(m) :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 66, p-value = 0.0009766
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Step_Width_(m) :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 50, p-value = 0.1475
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Speed_Var :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 22, p-value = 0.3652
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Stride_Time_Var :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 0, p-value = 0.0009766
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Stride_Lenght_Var :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 10, p-value = 0.04199
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Step_width_Var :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 0, p-value = 0.0009766
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Step_Lenght_Var :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 19, p-value = 0.2402
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Step_Time_Var :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 5, p-value = 0.009766
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Step_Time_Assym :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 23, p-value = 0.4131
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Step_Lenght_Assym :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 22, p-value = 0.3652
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Stance_Time_Assym :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 29, p-value = 0.7646
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Swing_Time_Assym :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 29, p-value = 0.7646
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Doubble_support_Assym :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 21, p-value = 0.3203
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for Single_Support_Assym :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 29, p-value = 0.7646
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for entropy_ap :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 0, p-value = 0.0009766
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for entropy_vert :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 33, p-value = 1
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for entropy_ml :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 28, p-value = 0.7002
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for hr_ap :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 56, p-value = 0.04199
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for hr_vert :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 53, p-value = 0.08301
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+# Wilcoxon Test for hr_ml :
+# 
+# 	Wilcoxon signed rank exact test
+# 
+# data:  DeltaPre_ON[[col_name]] and DeltaPost_ON[[col_name]]
+# V = 23, p-value = 0.4131
+# alternative hypothesis: true location shift is not equal to 0
+# 
+# 
+
+
+
+
+
+
+
+
+
+
+
 # --------------------------------------------
 # Friedman and paired wilcox Pre to Post to BestON -------------------------
 
@@ -2655,26 +2917,28 @@ Delta3.11 <- clinical_df %>% filter(condition=="OFFpreOP") %>% select(patient, `
   left_join(clinical_df %>% filter(condition=="MedOnStimON") %>% select(patient, `3.11`) %>% rename("Post_ON_3.11"="3.11")) %>%
   mutate(Delta3.11 = as.numeric(Post_ON_3.11)-as.numeric(Pre_OFF_3.11))
 
-clinical_df %>% select(HY, AIMS, )
 Delta3.11 
 
 kine_pre_post_Imp <- fread("kine_pre_post_Imp.txt")
 unique(kine_pre_post_Imp$condition)
 
-kine_postop_only <- fread("kine_postop_only_Imp.txt")
-unique(kine_postop_only$condition)
-
 Delta3.11$patient <- str_replace_all(Delta3.11$patient, "carv", "Carv")
 
-temp <- kine_pre_post_Imp %>% filter(condition=="Pre_op_OFF") %>% select(-c(condition)) %>%
-  inner_join(Delta3.11 %>% select(-c(Pre_OFF_3.11, Post_ON_3.11)))
 
+OFF <- kine_pre_post_Imp %>% filter(condition=="Pre_op_OFF") %>% select(-c(condition, patient))
+ON <- kine_pre_post_Imp %>% filter(condition=="MedON/StimON") %>% select(-c(condition, patient))
+
+DeltaKin <- ON - OFF
+
+DeltaKin <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% bind_cols(DeltaKin)
+
+
+temp <- DeltaKin %>% inner_join(Delta3.11 %>% select(-c(Pre_OFF_3.11, Post_ON_3.11))) %>% select(-patient)
 
 
 library(xgboost)
 library(caret)
 
-temp <- temp %>% select(-patient)
 
 
 shap.score.rank <- function(xgb_model = xgb_mod, shap_approx = TRUE, 
@@ -2789,16 +3053,22 @@ shap_result = shap.score.rank(xgb_model = model_hd,
 
 var_importance(shap_result, top_n=25)
 
-cor(temp$Swing_Time_Assym, temp$Delta3.11) 
+cor(temp$entropy_ap, temp$Delta3.11) 
 cor(temp$`Speed_(ms)`, temp$Delta3.11) 
 
-temp %>% ggplot(aes(Swing_Time_Assym, Delta3.11)) +
+temp %>% ggplot(aes(entropy_ap, Delta3.11)) +
   geom_point() +
   geom_smooth()
 
 shap_long_hd = shap.prep(X_train = as.matrix(temp[,-26]) , top_n = 25)
 
 plot.shap.summary(data_long = shap_long_hd)
+
+
+temp
+
+
+
 
 
 # --------------------------
