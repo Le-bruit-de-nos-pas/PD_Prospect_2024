@@ -33,7 +33,7 @@ clinical_df <- clinical_df %>% mutate(gait_impair=ifelse(`3.10`>=2, "yes", "no")
 
 clinical_df %>% group_by(patient) %>% count()
 
-
+clinical_df %>% group_by(eval, gait_impair, fog_impair) %>% count()
 
 clinical_df %>% select(patient, condition, gait_impair) %>%
   filter(condition!="MedOFFStimON"&condition!="MedOnStimOFF") %>%
@@ -71,6 +71,18 @@ clinical_df %>% select(patient, condition, gait_impair) %>%
 #   gait_impair OFFpreOP ONpreOP MedOFFStimOFF MedOnStimOFF MedOFFStimON MedOnStimON
 # 1 no                 3      17            NA            4            1           4
 # 2 yes               15       1            18           14           17          14
+
+
+
+clinical_df %>% select(patient, condition, fog_impair) %>%
+  group_by(condition, fog_impair) %>% count() %>%
+  spread(key=condition, value=n) %>%
+  select(fog_impair, OFFpreOP, ONpreOP, MedOFFStimOFF, MedOnStimOFF, MedOFFStimON, MedOnStimON)
+
+#   fog_impair OFFpreOP ONpreOP MedOFFStimOFF MedOnStimOFF MedOFFStimON MedOnStimON
+#   <chr>         <int>   <int>         <int>        <int>        <int>       <int>
+# 1 no                5      16             5           11           11          13
+# 2 yes              13       2            13            7            7           5
 
 
 library(RVAideMemoire)
@@ -3219,4 +3231,204 @@ temp <- DeltaAxial_PreOP %>% inner_join(Delta3.11_PreOFF_PostON %>% select(-c(Pr
 
 cor(temp$AXIAL, temp$Delta3.11, method="spearman") # 0.5696026
 
+
+
+# Using PreOP Age, disease duration, LEDD  Score Instead
+
+demographicdata <- read_xlsx(path="demographicdata.xlsx", skip=0, trim_ws = TRUE)
+
+names(demographicdata)[1] <- "patient"
+
+data.frame(names(demographicdata))
+length(unique(demographicdata$patient)) # 18
+
+
+demographicdata <- demographicdata %>%
+  select(patient,  AgeSurgery, DiseaseDurationSurgery, LEDDpreop) 
+
+names(demographicdata)
+
+demographicdata <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% inner_join(demographicdata)
+
+cor(demographicdata$AgeSurgery, temp$Delta3.11, method="spearman") # 0.5107754
+
+cor(demographicdata$DiseaseDurationSurgery, temp$Delta3.11, method="spearman") # -0.4421805
+
+cor( as.numeric(demographicdata$LEDDpreop), temp$Delta3.11, method="spearman") # -0.1171503
+
+
 # ---------------
+
+# Delta Kinematics Pre-OP OFF to ON -> 3.10 Pre OFF to Post ON ---------------------
+
+clinical_df <- read_xlsx(path="clinical_table copy2years.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
+names(clinical_df)[1] <- "patient"
+data.frame(names(clinical_df))
+unique(clinical_df$condition)
+unique(clinical_df$patient)
+
+Delta3.10_PreOFF_PostON <- clinical_df %>% filter(condition=="OFFpreOP") %>% select(patient, `3.10`) %>% rename("Pre_OFF_3.10"="3.10") %>%
+  left_join(clinical_df %>% filter(condition=="MedOnStimON") %>% select(patient, `3.10`) %>% rename("Post_ON_3.10"="3.10")) %>%
+  mutate(Delta3.10 = as.numeric(Post_ON_3.10)-as.numeric(Pre_OFF_3.10)) # The higher the worst they got, the lower the better
+
+Delta3.10_PreOFF_PostON 
+
+kine_pre_post_Imp <- fread("kine_pre_post_Imp.txt")
+unique(kine_pre_post_Imp$condition)
+
+Delta3.10_PreOFF_PostON$patient <- str_replace_all(Delta3.10_PreOFF_PostON$patient, "carv", "Carv")
+
+
+Kine_PreOFF <- kine_pre_post_Imp %>% filter(condition=="Pre_op_OFF") %>% select(-c(condition, patient))
+Kine_PreON <- kine_pre_post_Imp %>% filter(condition=="Pre_op_ON") %>% select(-c(condition, patient))
+
+DeltaKin_PreOP <- Kine_PreON - Kine_PreOFF # The higher the delta the more they move (e.g., higher speed)
+
+DeltaKin_PreOP <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% bind_cols(DeltaKin_PreOP)
+
+temp <- DeltaKin_PreOP %>% inner_join(Delta3.10_PreOFF_PostON %>% select(-c(Pre_OFF_3.10, Post_ON_3.10))) %>% select(-patient)
+
+setDT(temp)
+
+correlations <- transpose(temp[, lapply(.SD, function(x) cor(temp$Delta3.10, x, method="spearman")), .SDcols = -"Delta3.10"])
+names(correlations)[1] <- "corr_coef"
+correlations <- data.frame(names(temp)[1:25]) %>% bind_cols( correlations )
+
+setDT(correlations)[order(abs(corr_coef))]
+
+#         names.temp..1.25.   corr_coef
+#  1:       Stride_Time_(s) -0.005280741
+#  2: Doubble_support_Assym -0.036965186
+#  3:         Step_Time_(s) -0.047526668
+#  4:                 hr_ap -0.068649631
+#  5:        Step_Width_(m)  0.079211113
+#  6:       Step_Time_Assym -0.110895558
+#  7:         Step_Time_Var  0.137299263
+#  8:          entropy_vert -0.153141485
+#  9:            entropy_ap -0.163702967
+# 10:     Stride_Lenght_Var  0.179545190
+# 11:             Speed_Var -0.248194821
+# 12:                 hr_ml  0.248194821
+# 13:       Stride_Time_Var  0.285160007
+# 14:            entropy_ml -0.306282971
+# 15:       Step_Lenght_(s)  0.316844453
+# 16:     Stride_Length_(m)  0.316844453
+# 17:        Step_width_Var  0.364371120
+# 18:            Speed_(ms)  0.374932602
+# 19:    Cadence_(stepsmin)  0.374932602
+# 20:               hr_vert  0.438301493
+# 21:     Step_Lenght_Assym -0.459424456
+# 22:       Step_Lenght_Var -0.491108902
+# 23:  Single_Support_Assym -0.559758533
+# 24:     Stance_Time_Assym -0.575600756
+# 25:      Swing_Time_Assym -0.575600756
+
+# Using UPDRS Instead
+
+clinical_df <- read_xlsx(path="clinical_table copy2years.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
+
+names(clinical_df)[1] <- "patient"
+
+data.frame(names(clinical_df))
+length(unique(clinical_df$patient)) # 18
+
+
+# MDS UPDRS III
+# AXIAL score (3.9, 3.10, 3.11, 3.12)
+
+clinical_df <- clinical_df %>%
+  select(patient, condition) %>%
+  bind_cols(
+    clinical_df %>% 
+      select(-c(patient, Worst_side , condition)) %>%
+      mutate_if(is.character,as.numeric)
+  )
+
+clinical_df <- clinical_df %>% mutate(AXIAL=`3.9`+`3.10`+`3.11`+`3.12`) %>% 
+  select(patient, `UPDRS III`, AXIAL, condition)
+
+unique(clinical_df$condition)
+
+clinical_df <- clinical_df %>% filter(condition=="OFFpreOP"|condition=="ONpreOP")
+
+clinical_df <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% inner_join(clinical_df) 
+
+UPDRS_PreOFF <- clinical_df %>% filter(condition=="OFFpreOP") %>% select(-c(condition, patient, AXIAL))
+UPDRS_PreON <- clinical_df %>% filter(condition=="ONpreOP") %>% select(-c(condition, patient, AXIAL))
+
+DeltaUPDRS_PreOP <- UPDRS_PreON - UPDRS_PreOFF # The more negative the more they benefited 
+
+DeltaUPDRS_PreOP <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% bind_cols(DeltaUPDRS_PreOP)
+
+temp <- DeltaUPDRS_PreOP %>% inner_join(Delta3.10_PreOFF_PostON %>% select(-c(Pre_OFF_3.10, Post_ON_3.10))) %>% select(-patient)
+
+cor(temp$`UPDRS III`, temp$Delta3.10, method="spearman") # 0.5809059
+
+
+# Using AXIAL Score Instead
+
+clinical_df <- read_xlsx(path="clinical_table copy2years.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
+
+names(clinical_df)[1] <- "patient"
+
+data.frame(names(clinical_df))
+length(unique(clinical_df$patient)) # 18
+
+
+# MDS UPDRS III
+# AXIAL score (3.9, 3.10, 3.11, 3.12)
+
+clinical_df <- clinical_df %>%
+  select(patient, condition) %>%
+  bind_cols(
+    clinical_df %>% 
+      select(-c(patient, Worst_side , condition)) %>%
+      mutate_if(is.character,as.numeric)
+  )
+
+clinical_df <- clinical_df %>% mutate(AXIAL=`3.9`+`3.10`+`3.11`+`3.12`) %>% 
+  select(patient, `UPDRS III`, AXIAL, condition)
+
+unique(clinical_df$condition)
+
+clinical_df <- clinical_df %>% filter(condition=="OFFpreOP"|condition=="ONpreOP")
+
+clinical_df <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% inner_join(clinical_df) 
+
+Axial_PreOFF <- clinical_df %>% filter(condition=="OFFpreOP") %>% select(-c(condition, patient,  `UPDRS III`))
+Axial_PreON <- clinical_df %>% filter(condition=="ONpreOP") %>% select(-c(condition, patient,  `UPDRS III`))
+
+DeltaAxial_PreOP <- Axial_PreON - Axial_PreOFF # The more negative the more they benefited 
+
+DeltaAxial_PreOP <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% bind_cols(DeltaAxial_PreOP)
+
+temp <- DeltaAxial_PreOP %>% inner_join(Delta3.10_PreOFF_PostON %>% select(-c(Pre_OFF_3.10, Post_ON_3.10))) %>% select(-patient)
+
+cor(temp$AXIAL, temp$Delta3.10, method="spearman") # 0.5968023
+
+
+
+# Using PreOP Age, disease duration, LEDD  Score Instead
+
+demographicdata <- read_xlsx(path="demographicdata.xlsx", skip=0, trim_ws = TRUE)
+
+names(demographicdata)[1] <- "patient"
+
+data.frame(names(demographicdata))
+length(unique(demographicdata$patient)) # 18
+
+
+demographicdata <- demographicdata %>%
+  select(patient,  AgeSurgery, DiseaseDurationSurgery, LEDDpreop) 
+
+names(demographicdata)
+
+demographicdata <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% inner_join(demographicdata)
+
+cor(demographicdata$AgeSurgery, temp$Delta3.10, method="spearman") # 0.06864963
+
+cor(demographicdata$DiseaseDurationSurgery, temp$Delta3.10, method="spearman") # -0.3144353
+
+cor( as.numeric(demographicdata$LEDDpreop), temp$Delta3.10, method="spearman") # 0.448863
+
+# ------------
