@@ -3432,3 +3432,471 @@ cor(demographicdata$DiseaseDurationSurgery, temp$Delta3.10, method="spearman") #
 cor( as.numeric(demographicdata$LEDDpreop), temp$Delta3.10, method="spearman") # 0.448863
 
 # ------------
+# Friedman and paired wilcox Pre to Post OFF/OFF OFF/ON ON/OFF -------------------------
+
+kine_pre_post_Imp <- fread("kine_pre_post_Imp.txt")
+unique(kine_pre_post_Imp$condition)
+unique(kine_pre_post_Imp$patient)
+
+kine_pre_post_Imp 
+
+kine_pre_post_Imp <- kine_pre_post_Imp %>% 
+  filter(condition=="Pre_op_OFF"|condition=="Pre_op_ON"|condition=="MedOFF/StimON"| condition=="MedON/StimON")
+
+
+column_names <- names(kine_pre_post_Imp)[3:length(names(kine_pre_post_Imp))]  
+
+
+for (col_name in column_names) {
+  
+  friedman_result <- friedman.test(y=kine_pre_post_Imp[[col_name]], 
+                                   groups=kine_pre_post_Imp$condition,
+                                   blocks=kine_pre_post_Imp$patient)
+  
+  cat("Friedman Test for", col_name, ":\n")
+  print(friedman_result)
+  cat("\n")
+}
+
+
+
+# 
+# Friedman Test for Speed_(ms) :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 15.873, df = 3, p-value = 0.001204
+# 
+# 
+# Friedman Test for Cadence_(stepsmin) :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 3.5455, df = 3, p-value = 0.3149
+# 
+# 
+# Friedman Test for Step_Time_(s) :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 0.16364, df = 3, p-value = 0.9832
+# 
+# 
+# Friedman Test for Step_Lenght_(s) :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 20.782, df = 3, p-value = 0.0001169
+# 
+# 
+# Friedman Test for Stride_Time_(s) :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 0.27273, df = 3, p-value = 0.9651
+# 
+# 
+# Friedman Test for Stride_Length_(m) :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 19.691, df = 3, p-value = 0.0001967
+# 
+# 
+# Friedman Test for Step_Width_(m) :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 5.4, df = 3, p-value = 0.1447
+# 
+# 
+# Friedman Test for Speed_Var :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 5.0727, df = 3, p-value = 0.1665
+# 
+# 
+# Friedman Test for Stride_Time_Var :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 21.545, df = 3, p-value = 0.00008109
+# 
+# 
+# Friedman Test for Stride_Lenght_Var :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 9.6545, df = 3, p-value = 0.02174
+# 
+# 
+# Friedman Test for Step_width_Var :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 27.327, df = 3, p-value = 0.000005027
+# 
+# 
+# Friedman Test for Step_Lenght_Var :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 17.509, df = 3, p-value = 0.0005552
+# 
+# 
+# Friedman Test for Step_Time_Var :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 8.1273, df = 3, p-value = 0.04345
+# 
+# 
+# Friedman Test for Step_Time_Assym :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 3.1091, df = 3, p-value = 0.3751
+# 
+# 
+# Friedman Test for Step_Lenght_Assym :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 3.3273, df = 3, p-value = 0.3439
+# 
+# 
+# Friedman Test for Stance_Time_Assym :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 3.3273, df = 3, p-value = 0.3439
+# 
+# 
+# Friedman Test for Swing_Time_Assym :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 3.3273, df = 3, p-value = 0.3439
+# 
+# 
+# Friedman Test for Doubble_support_Assym :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 3.2182, df = 3, p-value = 0.3592
+# 
+# 
+# Friedman Test for Single_Support_Assym :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 3.6545, df = 3, p-value = 0.3013
+# 
+# 
+# Friedman Test for entropy_ap :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 18.6, df = 3, p-value = 0.0003307
+# 
+# 
+# Friedman Test for entropy_vert :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 11.836, df = 3, p-value = 0.007965
+# 
+# 
+# Friedman Test for entropy_ml :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 3.2182, df = 3, p-value = 0.3592
+# 
+# 
+# Friedman Test for hr_ap :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 6.6, df = 3, p-value = 0.0858
+# 
+# 
+# Friedman Test for hr_vert :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 9.8727, df = 3, p-value = 0.01968
+# 
+# 
+# Friedman Test for hr_ml :
+# 
+# 	Friedman rank sum test
+# 
+# data:  kine_pre_post_Imp[[col_name]], kine_pre_post_Imp$condition and kine_pre_post_Imp$patient
+# Friedman chi-squared = 1.8, df = 3, p-value = 0.6149
+# 
+
+
+
+for (col_name in column_names) {
+  
+  result <- pairwise.wilcox.test(kine_pre_post_Imp[[col_name]], 
+                                 kine_pre_post_Imp$condition,
+                                 p.adj = "bonferroni", paired=T)
+  
+  cat("pairwise.wilcox.test for", col_name, ":\n")
+  print(result$p.value)
+  cat("\n")
+}
+
+
+# pairwise.wilcox.test for Speed_(ms) :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON   0.111328125           NA         NA
+# Pre_op_OFF     1.000000000   1.00000000         NA
+# Pre_op_ON      0.005859375   0.02929687 0.05859375
+# 
+# pairwise.wilcox.test for Cadence_(stepsmin) :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON             1           NA         NA
+# Pre_op_OFF               1            1         NA
+# Pre_op_ON                1            1          1
+# 
+# pairwise.wilcox.test for Step_Time_(s) :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON             1           NA         NA
+# Pre_op_OFF               1            1         NA
+# Pre_op_ON                1            1          1
+# 
+# pairwise.wilcox.test for Step_Lenght_(s) :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON   0.017578125           NA         NA
+# Pre_op_OFF     1.000000000  1.000000000         NA
+# Pre_op_ON      0.005859375  0.005859375 0.04101562
+# 
+# pairwise.wilcox.test for Stride_Time_(s) :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON             1           NA         NA
+# Pre_op_OFF               1            1         NA
+# Pre_op_ON                1            1          1
+# 
+# pairwise.wilcox.test for Stride_Length_(m) :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON   0.058593750           NA         NA
+# Pre_op_OFF     1.000000000  1.000000000         NA
+# Pre_op_ON      0.005859375  0.005859375 0.02929687
+# 
+# pairwise.wilcox.test for Step_Width_(m) :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON    0.05859375           NA         NA
+# Pre_op_OFF      1.00000000    1.0000000         NA
+# Pre_op_ON       1.00000000    0.8847656          1
+# 
+# pairwise.wilcox.test for Speed_Var :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON     1.0000000           NA         NA
+# Pre_op_OFF       1.0000000            1         NA
+# Pre_op_ON        0.3222656            1          1
+# 
+# pairwise.wilcox.test for Stride_Time_Var :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON   0.005859375           NA         NA
+# Pre_op_OFF     0.498046875  0.005859375         NA
+# Pre_op_ON      1.000000000  0.005859375  0.2519531
+# 
+# pairwise.wilcox.test for Stride_Lenght_Var :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON     1.0000000           NA         NA
+# Pre_op_OFF       1.0000000    1.0000000         NA
+# Pre_op_ON        0.4042969    0.2519531  0.4980469
+# 
+# pairwise.wilcox.test for Step_width_Var :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON   1.000000000           NA         NA
+# Pre_op_OFF     0.005859375  0.005859375         NA
+# Pre_op_ON      0.005859375  0.005859375  0.8847656
+# 
+# pairwise.wilcox.test for Step_Lenght_Var :
+#              MedOFF/StimON MedON/StimON  Pre_op_OFF
+# MedON/StimON    1.00000000           NA          NA
+# Pre_op_OFF      0.02929687  0.005859375          NA
+# Pre_op_ON       0.88476562  1.000000000 0.005859375
+# 
+# pairwise.wilcox.test for Step_Time_Var :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON      1.000000           NA         NA
+# Pre_op_OFF        1.000000   1.00000000         NA
+# Pre_op_ON         0.609375   0.05859375  0.2519531
+# 
+# pairwise.wilcox.test for Step_Time_Assym :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON     1.0000000           NA         NA
+# Pre_op_OFF       1.0000000            1         NA
+# Pre_op_ON        0.3222656            1          1
+# 
+# pairwise.wilcox.test for Step_Lenght_Assym :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON     1.0000000           NA         NA
+# Pre_op_OFF       0.7382812            1         NA
+# Pre_op_ON        1.0000000            1          1
+# 
+# pairwise.wilcox.test for Stance_Time_Assym :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON     0.7382812           NA         NA
+# Pre_op_OFF       1.0000000            1         NA
+# Pre_op_ON        0.6093750            1          1
+# 
+# pairwise.wilcox.test for Swing_Time_Assym :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON     0.7382812           NA         NA
+# Pre_op_OFF       1.0000000            1         NA
+# Pre_op_ON        0.6093750            1          1
+# 
+# pairwise.wilcox.test for Doubble_support_Assym :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON     1.0000000           NA         NA
+# Pre_op_OFF       0.8847656            1         NA
+# Pre_op_ON        1.0000000            1  0.3222656
+# 
+# pairwise.wilcox.test for Single_Support_Assym :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON     0.6093750           NA         NA
+# Pre_op_OFF       1.0000000            1         NA
+# Pre_op_ON        0.4980469            1  0.8847656
+# 
+# pairwise.wilcox.test for entropy_ap :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON    0.49804687           NA         NA
+# Pre_op_OFF      0.05859375  0.005859375         NA
+# Pre_op_ON       0.14648437  0.005859375          1
+# 
+# pairwise.wilcox.test for entropy_vert :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON     1.0000000           NA         NA
+# Pre_op_OFF       0.1933594    0.2519531         NA
+# Pre_op_ON        1.0000000    1.0000000 0.05859375
+# 
+# pairwise.wilcox.test for entropy_ml :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON    1.00000000           NA         NA
+# Pre_op_OFF      0.04101562            1         NA
+# Pre_op_ON       1.00000000            1          1
+# 
+# pairwise.wilcox.test for hr_ap :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON             1           NA         NA
+# Pre_op_OFF               1    1.0000000         NA
+# Pre_op_ON                1    0.2519531  0.8847656
+# 
+# pairwise.wilcox.test for hr_vert :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON     1.0000000           NA         NA
+# Pre_op_OFF       1.0000000    1.0000000         NA
+# Pre_op_ON        0.1464844    0.4980469  0.1464844
+# 
+# pairwise.wilcox.test for hr_ml :
+#              MedOFF/StimON MedON/StimON Pre_op_OFF
+# MedON/StimON             1           NA         NA
+# Pre_op_OFF               1            1         NA
+# Pre_op_ON                1            1          1
+
+# -----------------
+
+
+# Multiple comparisions of % FOG/Gait Impait across conditions ---------------
+
+# Gait Impair
+num <-  c( 15, 1, 18, 14, 17, 14)
+names(num) <- c("PreOFF", "PreON", "PostOFF", "PostONOFF", "PostOFFON", "PostONON")
+den <- c( 18, 18, 18, 18, 18, 18 )
+
+prop.test(num, den)
+
+# 	6-sample test for equality of proportions without continuity
+# 	correction
+# 
+# data:  num out of den
+# X-squared = 53.976, df = 5, p-value = 0.0000000002119
+# alternative hypothesis: two.sided
+# sample estimates:
+#     prop 1     prop 2     prop 3     prop 4     prop 5     prop 6 
+# 0.83333333 0.05555556 1.00000000 0.77777778 0.94444444 0.77777778 
+
+pairwise.prop.test(num, den)
+
+# 	Pairwise comparisons using Pairwise comparison of proportions 
+# 
+# data:  num out of den 
+# 
+#           PreOFF  PreON     PostOFF PostONOFF PostOFFON
+# PreON     0.00017 -         -       -         -        
+# PostOFF   1.00000 0.0000014 -       -         -        
+# PostONOFF 1.00000 0.00060   1.00000 -         -        
+# PostOFFON 1.00000 0.0000080 1.00000 1.00000   -        
+# PostONON  1.00000 0.00060   1.00000 1.00000   1.00000  
+# 
+# P value adjustment method: holm
+
+
+# FOG
+
+
+# Gait Impair
+num <-  c( 13, 2, 13, 7, 7, 5)
+names(num) <- c("PreOFF", "PreON", "PostOFF", "PostONOFF", "PostOFFON", "PostONON")
+den <- c( 18, 18, 18, 18, 18, 18 )
+
+prop.test(num, den)
+
+# 	6-sample test for equality of proportions without continuity correction
+# 
+# data:  num out of den
+# X-squared = 21.886, df = 5, p-value = 0.0005503
+# alternative hypothesis: two.sided
+# sample estimates:
+#    prop 1    prop 2    prop 3    prop 4    prop 5    prop 6 
+# 0.7222222 0.1111111 0.7222222 0.3888889 0.3888889 0.2777778 
+
+pairwise.prop.test(num, den)
+
+# 	Pairwise comparisons using Pairwise comparison of proportions 
+# 
+# data:  num out of den 
+# 
+#           PreOFF PreON PostOFF PostONOFF PostOFFON
+# PreON     0.011  -     -       -         -        
+# PostOFF   1.000  0.011 -       -         -        
+# PostONOFF 1.000  1.000 1.000   -         -        
+# PostOFFON 1.000  1.000 1.000   1.000     -        
+# PostONON  0.255  1.000 0.255   1.000     1.000    
+# 
+# P value adjustment method: holm 
+
+
+
+# --------------
