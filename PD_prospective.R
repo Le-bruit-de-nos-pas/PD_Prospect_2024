@@ -280,7 +280,7 @@ ggplot() +
                 position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
   geom_jitter(data = clinical_df[clinical_df$Var=="TREMOR",], 
               aes(x = condition, 
-                  y = Score, color = condition),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+                  y = Score, color = condition),  show.legend = FALSE, size=3, alpha=0.6, height=0.1, width=0.3) +
   labs(title = "Tremor Score") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -309,7 +309,7 @@ ggplot() +
                 position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
   geom_jitter(data = clinical_df[clinical_df$Var=="AXIAL",], 
               aes(x = condition, 
-                  y = Score, color = condition),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+                  y = Score, color = condition),  show.legend = FALSE, size=3, alpha=0.6, height=0.1, width=0.3) +
   labs(title = "Axial Score") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -418,7 +418,7 @@ ggplot() +
                 position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
   geom_jitter(data = clinical_df[clinical_df$Var=="3.10",], 
               aes(x = condition, 
-                  y = Score, color = condition),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+                  y = Score, color = condition),  show.legend = FALSE, size=3, alpha=0.6, height=0.1, width=0.3) +
   labs(title = "3.10 (Gait) Score") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -448,7 +448,7 @@ ggplot() +
                 position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
   geom_jitter(data = clinical_df[clinical_df$Var=="3.11",], 
               aes(x = condition, 
-                  y = Score, color = condition),  show.legend = FALSE, size=3, alpha=0.7, width=0.3) +
+                  y = Score, color = condition),  show.legend = FALSE, size=3, alpha=0.6, height=0.1, width=0.3) +
   labs(title = "3.11 (Freezing) Score") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
