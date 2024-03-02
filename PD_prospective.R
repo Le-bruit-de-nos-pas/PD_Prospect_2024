@@ -3257,6 +3257,54 @@ cor(demographicdata$DiseaseDurationSurgery, temp$Delta3.11, method="spearman") #
 cor( as.numeric(demographicdata$LEDDpreop), temp$Delta3.11, method="spearman") # -0.1171503
 
 
+
+
+
+
+
+
+
+# Compare the correlation  coeficientes
+# 
+# all_deltas <- temp_kine %>% bind_cols(
+#   temp_updrs %>% select(-Delta3.11)
+# ) %>% 
+#   bind_cols(
+#     temp_axial %>%  select(-Delta3.11)
+#   )
+# 
+# 
+# install.packages("cocor")
+# library(cocor)
+# 
+# n_subjects <- 11
+# cor_entropy_ml <- cor( all_deltas$Delta3.11, all_deltas$entropy_ml, method="spearman")
+# cor_axial <- cor( all_deltas$Delta3.11, all_deltas$AXIAL, method="spearman")
+# cor_entropy_axial <- cor( all_deltas$AXIAL, all_deltas$entropy_ml, method="spearman")
+# 
+# result_comparison <- cocor.dep.groups.overlap(r.jk = cor_entropy_ml, 
+#                                               r.jh = cor_axial, 
+#                                               r.kh = cor_entropy_axial, 
+#                                               n = n_subjects)
+# 
+# result_comparison@pearson1898$p.value
+# 
+# 
+# 
+# n_subjects <- 11
+# cor_updrs <- cor( all_deltas$Delta3.11, all_deltas$`UPDRS III`, method="spearman")
+# cor_hrap <- cor( all_deltas$Delta3.11, all_deltas$hr_ap, method="spearman")
+# cor_hrap_updrs <- cor( all_deltas$hr_ap, all_deltas$`UPDRS III`, method="spearman")
+# 
+# result_comparison <- cocor.dep.groups.overlap(r.jk = cor_updrs, 
+#                                               r.jh = cor_hrap, 
+#                                               r.kh = cor_hrap_updrs, 
+#                                               n = n_subjects)
+# 
+# result_comparison@pearson1898$p.value
+
+
+
 # ---------------
 
 # Delta Kinematics Pre-OP OFF to ON -> 3.10 Pre OFF to Post ON ---------------------
@@ -3900,3 +3948,116 @@ pairwise.prop.test(num, den)
 
 
 # --------------
+# Delta Kinematics or UPDRS III itself (Pre-OP OFF to ON) -> (UPDRS III Pre OFF to Post ON) ---------------------
+
+clinical_df <- read_xlsx(path="clinical_table copy2years.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
+names(clinical_df)[1] <- "patient"
+data.frame(names(clinical_df))
+unique(clinical_df$condition)
+unique(clinical_df$patient)
+
+DeltaUPDRS_PreOFF_PostON <- clinical_df %>% filter(condition=="OFFpreOP") %>% select(patient, `UPDRS III`) %>% rename("Pre_OFF_UPDRS"="UPDRS III") %>%
+  left_join(clinical_df %>% filter(condition=="MedOnStimON") %>% select(patient, `UPDRS III`) %>% rename("Post_ON_UPDRS"="UPDRS III")) %>%
+  mutate(DeltaUPDRS = as.numeric(Post_ON_UPDRS)-as.numeric(Pre_OFF_UPDRS)) # The higher the worst they got, the lower the better
+
+DeltaUPDRS_PreOFF_PostON 
+
+kine_pre_post_Imp <- fread("kine_pre_post_Imp.txt")
+unique(kine_pre_post_Imp$condition)
+
+DeltaUPDRS_PreOFF_PostON$patient <- str_replace_all(DeltaUPDRS_PreOFF_PostON$patient, "carv", "Carv")
+
+
+Kine_PreOFF <- kine_pre_post_Imp %>% filter(condition=="Pre_op_OFF") %>% select(-c(condition, patient))
+Kine_PreON <- kine_pre_post_Imp %>% filter(condition=="Pre_op_ON") %>% select(-c(condition, patient))
+
+DeltaKin_PreOP <- Kine_PreON - Kine_PreOFF # The higher the delta the more they move (e.g., higher speed)
+
+DeltaKin_PreOP <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% bind_cols(DeltaKin_PreOP)
+
+temp <- DeltaKin_PreOP %>% inner_join(DeltaUPDRS_PreOFF_PostON %>% select(-c(Pre_OFF_UPDRS , Post_ON_UPDRS ))) %>% select(-patient)
+
+setDT(temp)
+
+temp_kine <- temp
+
+correlations <- transpose(temp[, lapply(.SD, function(x) cor(temp$DeltaUPDRS, x, method="spearman")), .SDcols = -"DeltaUPDRS"])
+names(correlations)[1] <- "corr_coef"
+correlations <- data.frame(names(temp)[1:25]) %>% bind_cols( correlations )
+
+setDT(correlations)[order(abs(corr_coef))]
+
+#         names.temp..1.25.   corr_coef
+#  1:          entropy_vert -0.01405804
+#  2: Doubble_support_Assym -0.03748810
+#  3:         Step_Time_Var  0.04686013
+#  4:        Step_width_Var  0.06560418
+#  5:       Step_Lenght_(s) -0.07966222
+#  6:             Speed_Var -0.12183634
+#  7:  Single_Support_Assym -0.13120836
+#  8:     Stride_Length_(m) -0.14526640
+#  9:       Step_Lenght_Var -0.14526640
+# 10:     Stance_Time_Assym -0.14526640
+# 11:      Swing_Time_Assym -0.14526640
+# 12:            Speed_(ms) -0.15463843
+# 13:        Step_Width_(m)  0.16869647
+# 14:               hr_vert -0.18275451
+# 15:     Step_Lenght_Assym  0.19212653
+# 16:         Step_Time_(s)  0.21087058
+# 17:    Cadence_(stepsmin) -0.27647477
+# 18:       Step_Time_Assym -0.29990483
+# 19:     Stride_Lenght_Var  0.30459084
+# 20:       Stride_Time_Var  0.38425306
+# 21:       Stride_Time_(s)  0.39362509
+# 22:            entropy_ap  0.45454326
+# 23:                 hr_ml -0.45922927
+# 24:                 hr_ap -0.46391528
+# 25:            entropy_ml  0.62792574
+
+
+
+
+
+
+# Using UPDRS Instead
+
+clinical_df <- read_xlsx(path="clinical_table copy2years.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
+
+names(clinical_df)[1] <- "patient"
+
+data.frame(names(clinical_df))
+length(unique(clinical_df$patient)) # 18
+
+
+# MDS UPDRS III
+# AXIAL score (3.9, 3.10, 3.11, 3.12)
+
+clinical_df <- clinical_df %>%
+  select(patient, condition) %>%
+  bind_cols(
+    clinical_df %>% 
+      select(-c(patient, Worst_side , condition)) %>%
+      mutate_if(is.character,as.numeric)
+  )
+
+clinical_df <- clinical_df %>% mutate(AXIAL=`3.9`+`3.10`+`3.11`+`3.12`) %>% 
+  select(patient, `UPDRS III`, AXIAL, condition)
+
+unique(clinical_df$condition)
+
+clinical_df <- clinical_df %>% filter(condition=="OFFpreOP"|condition=="ONpreOP")
+
+clinical_df <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% inner_join(clinical_df) 
+
+UPDRS_PreOFF <- clinical_df %>% filter(condition=="OFFpreOP") %>% select(-c(condition, patient, AXIAL))
+UPDRS_PreON <- clinical_df %>% filter(condition=="ONpreOP") %>% select(-c(condition, patient, AXIAL))
+
+DeltaUPDRS_PreOP <- UPDRS_PreON - UPDRS_PreOFF # The more negative the more they benefited 
+
+DeltaUPDRS_PreOP <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% bind_cols(DeltaUPDRS_PreOP)
+
+temp <- DeltaUPDRS_PreOP %>% inner_join(DeltaUPDRS_PreOFF_PostON %>% select(-c(Pre_OFF_UPDRS, Post_ON_UPDRS))) %>% select(-patient)
+
+cor(temp$`UPDRS III`, temp$DeltaUPDRS, method="spearman") # 0.5471394
+
+# -----------
