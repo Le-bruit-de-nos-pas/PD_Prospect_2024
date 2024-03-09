@@ -3148,6 +3148,17 @@ setDT(correlations)[order(abs(corr_coef))]
 # 24:                 hr_ap -0.46391528
 # 25:            entropy_ml  0.62792574
 
+
+correlations <- transpose(temp[, lapply(.SD, function(x) {cor.test(temp$Delta3.11, x, method = "spearman")$p.value}), .SDcols = -"Delta3.11"])
+
+names(correlations)[1] <- "p_value"
+
+correlations <- data.frame(names(temp)[1:25]) %>% bind_cols(correlations)
+
+setDT(correlations)[order(abs(p_value))]
+
+
+
 # Using UPDRS Instead
 
 clinical_df <- read_xlsx(path="clinical_table copy2years.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
@@ -3189,6 +3200,7 @@ temp <- DeltaUPDRS_PreOP %>% inner_join(Delta3.11_PreOFF_PostON %>% select(-c(Pr
 
 cor(temp$`UPDRS III`, temp$Delta3.11, method="spearman") # 0.3357734
 
+cor.test(temp$`UPDRS III`, temp$Delta3.11, method="spearman") # 0.3357734
 
 # Using AXIAL Score Instead
 
@@ -3231,6 +3243,7 @@ temp <- DeltaAxial_PreOP %>% inner_join(Delta3.11_PreOFF_PostON %>% select(-c(Pr
 
 cor(temp$AXIAL, temp$Delta3.11, method="spearman") # 0.5696026
 
+cor.test(temp$AXIAL, temp$Delta3.11, method="spearman") # 0.3357734
 
 
 # Using PreOP Age, disease duration, LEDD  Score Instead
@@ -3371,6 +3384,18 @@ setDT(correlations)[order(abs(corr_coef))]
 # 24:     Stance_Time_Assym -0.575600756
 # 25:      Swing_Time_Assym -0.575600756
 
+
+
+correlations <- transpose(temp[, lapply(.SD, function(x) {cor.test(temp$Delta3.10, x, method = "spearman")$p.value}), .SDcols = -"Delta3.10"])
+
+names(correlations)[1] <- "p_value"
+
+correlations <- data.frame(names(temp)[1:25]) %>% bind_cols(correlations)
+
+setDT(correlations)[order(abs(p_value))]
+
+
+
 # Using UPDRS Instead
 
 clinical_df <- read_xlsx(path="clinical_table copy2years.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
@@ -3412,6 +3437,7 @@ temp <- DeltaUPDRS_PreOP %>% inner_join(Delta3.10_PreOFF_PostON %>% select(-c(Pr
 
 cor(temp$`UPDRS III`, temp$Delta3.10, method="spearman") # 0.5809059
 
+cor.test(temp$`UPDRS III`, temp$Delta3.10, method="spearman") # 0.5809059
 
 # Using AXIAL Score Instead
 
@@ -3454,6 +3480,7 @@ temp <- DeltaAxial_PreOP %>% inner_join(Delta3.10_PreOFF_PostON %>% select(-c(Pr
 
 cor(temp$AXIAL, temp$Delta3.10, method="spearman") # 0.5968023
 
+cor.test(temp$AXIAL, temp$Delta3.10, method="spearman") # 0.5968023
 
 
 # Using PreOP Age, disease duration, LEDD  Score Instead
@@ -4016,6 +4043,15 @@ setDT(correlations)[order(abs(corr_coef))]
 
 
 
+correlations <- transpose(temp[, lapply(.SD, function(x) {cor.test(temp$DeltaUPDRS, x, method = "spearman")$p.value}), .SDcols = -"DeltaUPDRS"])
+
+names(correlations)[1] <- "p_value"
+
+correlations <- data.frame(names(temp)[1:25]) %>% bind_cols(correlations)
+
+setDT(correlations)[order(abs(p_value))]
+
+
 
 
 
@@ -4059,5 +4095,7 @@ DeltaUPDRS_PreOP <- kine_pre_post_Imp %>% select(patient) %>% distinct() %>% bin
 temp <- DeltaUPDRS_PreOP %>% inner_join(DeltaUPDRS_PreOFF_PostON %>% select(-c(Pre_OFF_UPDRS, Post_ON_UPDRS))) %>% select(-patient)
 
 cor(temp$`UPDRS III`, temp$DeltaUPDRS, method="spearman") # 0.5471394
+
+cor.test(temp$`UPDRS III`, temp$DeltaUPDRS, method="spearman") # -value = 0.08152
 
 # -----------
