@@ -4014,32 +4014,32 @@ correlations <- data.frame(names(temp)[1:25]) %>% bind_cols( correlations )
 
 setDT(correlations)[order(abs(corr_coef))]
 
-#         names.temp..1.25.   corr_coef
-#  1:          entropy_vert -0.01405804
-#  2: Doubble_support_Assym -0.03748810
-#  3:         Step_Time_Var  0.04686013
-#  4:        Step_width_Var  0.06560418
-#  5:       Step_Lenght_(s) -0.07966222
-#  6:             Speed_Var -0.12183634
-#  7:  Single_Support_Assym -0.13120836
-#  8:     Stride_Length_(m) -0.14526640
-#  9:       Step_Lenght_Var -0.14526640
-# 10:     Stance_Time_Assym -0.14526640
-# 11:      Swing_Time_Assym -0.14526640
-# 12:            Speed_(ms) -0.15463843
-# 13:        Step_Width_(m)  0.16869647
-# 14:               hr_vert -0.18275451
-# 15:     Step_Lenght_Assym  0.19212653
-# 16:         Step_Time_(s)  0.21087058
-# 17:    Cadence_(stepsmin) -0.27647477
-# 18:       Step_Time_Assym -0.29990483
-# 19:     Stride_Lenght_Var  0.30459084
-# 20:       Stride_Time_Var  0.38425306
-# 21:       Stride_Time_(s)  0.39362509
-# 22:            entropy_ap  0.45454326
-# 23:                 hr_ml -0.45922927
-# 24:                 hr_ap -0.46391528
-# 25:            entropy_ml  0.62792574
+# names.temp..1.25.   corr_coef
+# 1:       Step_Lenght_Var  0.00000000
+# 2:            Speed_(ms)  0.02277910
+# 3:       Stride_Time_Var  0.02733492
+# 4:       Step_Lenght_(s) -0.03189074
+# 5:                 hr_ml  0.03189074
+# 6:        Step_width_Var  0.04100238
+# 7:     Stride_Length_(m) -0.10478387
+# 8:          entropy_vert -0.10478387
+# 9:         Step_Time_Var  0.11845133
+# 10:            entropy_ap  0.12300715
+# 11:     Stride_Lenght_Var  0.13211879
+# 12:         Step_Time_(s) -0.14578626
+# 13:       Stride_Time_(s) -0.15489790
+# 14:               hr_vert  0.17767700
+# 15:       Step_Time_Assym -0.19590028
+# 16:                 hr_ap  0.19590028
+# 17: Doubble_support_Assym  0.21412356
+# 18:            entropy_ml -0.23234684
+# 19:             Speed_Var -0.29612833
+# 20:        Step_Width_(m)  0.31890743
+# 21:     Step_Lenght_Assym -0.39180056
+# 22:    Cadence_(stepsmin)  0.41913548
+# 23:     Stance_Time_Assym -0.52847518
+# 24:      Swing_Time_Assym -0.52847518
+# 25:  Single_Support_Assym -0.57858920
 
 
 
