@@ -3989,6 +3989,8 @@ DeltaUPDRS_PreOFF_PostON <- clinical_df %>% filter(condition=="OFFpreOP") %>% se
 
 DeltaUPDRS_PreOFF_PostON 
 
+mean(DeltaUPDRS_PreOFF_PostON$DeltaUPDRS)
+
 kine_pre_post_Imp <- fread("kine_pre_post_Imp.txt")
 unique(kine_pre_post_Imp$condition)
 
@@ -4099,3 +4101,198 @@ cor(temp$`UPDRS III`, temp$DeltaUPDRS, method="spearman") # 0.5471394
 cor.test(temp$`UPDRS III`, temp$DeltaUPDRS, method="spearman") # -value = 0.08152
 
 # -----------
+# SWS and # FOG events NEW DATA July -------
+
+clinical_df <- read_xlsx(path="clinical_table_new_july30.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
+
+names(clinical_df)[1] <- "patient"
+
+data.frame(names(clinical_df))
+
+length(unique(clinical_df$patient)) # 18
+
+clinical_df <- clinical_df %>% select(patient, condition,  SWSFOG_) 
+
+sum(is.na(clinical_df))
+
+clinical_df$SWSFOG_ <- as.numeric(clinical_df$SWSFOG_)
+
+unique(clinical_df$condition)
+
+clinical_df <- clinical_df %>% filter(condition=="MedOFFStimOFF"|condition=="MedOnStimOFF"|condition=="MedOFFStimON"|condition=="MedOnStimON")
+
+clinical_df %>% drop_na() %>% group_by(condition) %>% summarise(mean=mean(SWSFOG_))
+
+clinical_df %>%
+  ggplot(aes(x = condition, y = SWSFOG_, color = factor(condition), group = patient)) +
+  geom_jitter(position = position_dodge(width = 0.2), size=2, alpha=0.6, show.legend = F) +
+  geom_line(position = position_dodge(width = 0.2), show.legend = F) +
+  theme_minimal() +
+  # ylim(0,10) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c( "#0087CA", "#001932", "#A8234C",  "#C6B615")) +
+  scale_fill_manual(values=c("#0087CA", "#001932", "#A8234C", "#C6B615")) +
+  xlab("\n Condiiton") + ylab("# FOG Events  \n")
+
+
+
+
+
+
+clinical_df <- read_xlsx(path="clinical_table_new_july30.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
+
+names(clinical_df)[1] <- "patient"
+
+data.frame(names(clinical_df))
+
+length(unique(clinical_df$patient)) # 18
+
+clinical_df <- clinical_df %>% select(patient, condition,  SWSTime_) 
+
+sum(is.na(clinical_df))
+
+clinical_df$SWSTime_ <- as.numeric(clinical_df$SWSTime_)
+
+unique(clinical_df$condition)
+
+clinical_df <- clinical_df %>% filter(condition=="MedOFFStimOFF"|condition=="MedOnStimOFF"|condition=="MedOFFStimON"|condition=="MedOnStimON")
+
+sum(is.na(clinical_df))
+
+clinical_df %>%
+  ggplot(aes(x = condition, y = SWSTime_, color = factor(condition), group = patient)) +
+  geom_jitter(position = position_dodge(width = 0.2), size=2, alpha=0.6, show.legend = F) +
+  geom_line(position = position_dodge(width = 0.2), show.legend = F) +
+  theme_minimal() +
+  ylim(0,170) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c( "#0087CA", "#001932", "#A8234C", "#C6B615")) +
+  scale_fill_manual(values=c("#0087CA", "#001932", "#A8234C", "#C6B615")) +
+  xlab("\n Condiiton") + ylab("SWS Time (s)  \n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+clinical_df <- read_xlsx(path="clinical_table_new_july30.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
+
+names(clinical_df)[1] <- "patient"
+
+data.frame(names(clinical_df))
+
+length(unique(clinical_df$patient)) # 18
+
+
+unique(clinical_df$condition)
+
+
+clinical_df <- clinical_df %>%
+  select(patient, condition, SWSFOG_) %>% mutate(SWSFOG_=as.numeric(SWSFOG_))
+
+
+unique(clinical_df$condition)
+
+
+clinical_df <- clinical_df %>%
+  mutate(condition=ifelse(condition=="MedOnStimOFF", "2- MedONStimOFF",
+                          ifelse(condition=="MedOFFStimON", "3- MedOFFStimON", 
+                                 ifelse(condition=="MedOFFStimOFF", "1- MedOFFStimOFF", "4- MedONStimON")))) %>%
+  mutate(condition=factor(condition, levels=c( "1- MedOFFStimOFF", "2- MedONStimOFF", "3- MedOFFStimON",  "4- MedONStimON")))
+
+clinical_df <- clinical_df %>% arrange(condition)
+
+
+
+mean_stats <- aggregate(SWSFOG_ ~ condition , data = clinical_df, function(x) mean(x))
+sd_stats <- aggregate(SWSFOG_ ~ condition , data = clinical_df, function(x) sd(x)/sqrt(18))
+
+summary_stats <- merge(mean_stats, sd_stats, by = "condition", suffixes = c("_mean", "_sd"))
+
+summary_stats <- summary_stats %>% arrange(condition)
+
+names(summary_stats)
+
+ggplot() +
+  geom_bar(data = summary_stats, aes(x = condition, y = SWSFOG__mean, fill=condition, colour=NULL ), 
+           stat = "identity", position = "dodge", show.legend = FALSE, alpha=0.3 , width = 0.5 ) +
+  geom_errorbar(data = summary_stats, aes(x = condition, colour=condition, ymin = SWSFOG__mean  - SWSFOG__sd, ymax = SWSFOG__mean  + SWSFOG__sd), 
+                position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
+  geom_jitter(data = clinical_df, 
+              aes(x = condition, 
+                  y = SWSFOG_, color = condition),  show.legend = FALSE, size=3, alpha=0.7, width=0.3, height = 0.1) +
+  labs(title = "# FOG Events ") +
+  theme_minimal() +
+  #ylim(0,10) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c( "#A8234C",  "#00639B", "#001932", "#C6B615")) +
+  scale_fill_manual(values=c( "#A8234C",  "#00639B",  "#001932", "#C6B615")) +
+  xlab("\n Condiiton") + ylab("# FOG Events \n [ x\u0305 \u00B1 \u03C3 ] \n")
+
+
+
+
+
+
+clinical_df <- read_xlsx(path="clinical_table copy2years.xlsx", skip=0, col_types = "text", trim_ws = TRUE)
+
+names(clinical_df)[1] <- "patient"
+
+data.frame(names(clinical_df))
+
+length(unique(clinical_df$patient)) # 18
+
+
+unique(clinical_df$condition)
+
+
+clinical_df <- clinical_df %>%
+  select(patient, condition, SWSTime_) %>% mutate(SWSTime_=as.numeric(SWSTime_))
+
+
+unique(clinical_df$condition)
+
+
+clinical_df <- clinical_df %>%
+  mutate(condition=ifelse(condition=="MedOnStimOFF", "2- MedONStimOFF",
+                          ifelse(condition=="MedOFFStimON", "3- MedOFFStimON", 
+                                 ifelse(condition=="MedOFFStimOFF", "1- MedOFFStimOFF", "4- MedONStimON")))) %>%
+  mutate(condition=factor(condition, levels=c( "1- MedOFFStimOFF", "2- MedONStimOFF", "3- MedOFFStimON",  "4- MedONStimON")))
+
+clinical_df <- clinical_df %>% arrange(condition)
+
+
+mean_stats <- aggregate(SWSTime_ ~ condition , data = clinical_df, function(x) mean(x))
+sd_stats <- aggregate(SWSTime_ ~ condition , data = clinical_df, function(x) sd(x)/sqrt(18))
+
+summary_stats <- merge(mean_stats, sd_stats, by = "condition", suffixes = c("_mean", "_sd"))
+
+summary_stats <- summary_stats %>% arrange(condition)
+
+names(summary_stats)
+
+ggplot() +
+  geom_bar(data = summary_stats, aes(x = condition, y = SWSTime__mean, fill=condition, colour=NULL ), 
+           stat = "identity", position = "dodge", show.legend = FALSE, alpha=0.3 , width = 0.5 ) +
+  geom_errorbar(data = summary_stats, aes(x = condition, colour=condition, ymin = SWSTime__mean  - SWSTime__sd, ymax = SWSTime__mean  + SWSTime__sd), 
+                position = position_dodge(0.9), width = 0.25, show.legend = FALSE) +
+  geom_jitter(data = clinical_df, 
+              aes(x = condition, 
+                  y = SWSTime_, color = condition),  show.legend = FALSE, size=3, alpha=0.7, width=0.3,  height = 0.1) +
+  labs(title = "SWS Time (s) ") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_colour_manual(values=c( "#A8234C",  "#00639B", "#001932",  "#C6B615")) +
+  scale_fill_manual(values=c( "#A8234C",  "#00639B",  "#001932",  "#C6B615")) +
+  xlab("\n Condiiton") + ylab("SWS Time (s) \n [ x\u0305 \u00B1 \u03C3 ] \n")
+
+
+# ----------
